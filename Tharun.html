@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scholar Dashboard | GenZ Fixed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+  --bg:#050505;
+  --glass:rgba(255,255,255,0.07);
+  --blur:blur(25px);
+  --text:#ffffff;
+  --accent:#00f2ff;
+  --success:#00ff88;
+  --danger:#ff0055;
+  --card-border:rgba(255,255,255,0.1);
+}
+.light{
+  --bg:#f8fafc;
+  --glass:rgba(255,255,255,0.8);
+  --text:#0f172a;
+  --accent:#3b82f6;
+  --card-border:rgba(0,0,0,0.05);
+}
+*{box-sizing:border-box; font-family: 'Inter', system-ui, sans-serif; transition: all 0.2s ease;}
+body{ margin:0; background:var(--bg); color:var(--text); padding:20px; }
+
+header{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 30px; }
+.glass{
+  background:var(--glass); backdrop-filter:var(--blur); border-radius:24px;
+  padding:24px; margin-bottom:20px; border: 1px solid var(--card-border);
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+
+button{
+  background:var(--accent); border:none; padding:12px 20px; border-radius:14px;
+  cursor:pointer; color:#000; font-weight: 800; text-transform: uppercase; font-size: 0.7rem;
+}
+.btn-clear { background: transparent; border: 1px solid var(--danger); color: var(--danger); width: 100%; margin-top: 15px; }
+.btn-clear:hover { background: var(--danger); color: white; }
+
+input, textarea {
+  padding:14px; border-radius:14px; border:none; width:100%; margin-bottom:12px;
+  background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--card-border);
+}
+.card {
+  background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; margin: 10px 0;
+  display:flex; justify-content:space-between; align-items: center; border: 1px solid var(--card-border);
+}
+
+canvas{ width:100%; height:180px; margin-top: 15px; border-radius: 16px; background: rgba(255,255,255,0.02); }
+.progress-bg { background: rgba(255,255,255,0.1); height: 10px; border-radius: 20px; margin-top: 10px; width: 100%;}
+.progress-fill { background: var(--accent); height: 100%; border-radius: 20px; }
+
+.calc-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.calc-btn{ padding:16px; border-radius:14px; background:rgba(255,255,255,0.05); color:var(--text); border: 1px solid var(--card-border); cursor: pointer; }
+</style>
+</head>
+
+<body>
+
+<header class="glass">
+  <div>
+    <h2 id="greet" style="margin:0;">Vibe Check...</h2>
+    <div id="realTime" style="opacity: 0.6; font-size: 0.85rem; margin-top: 4px;"></div>
+  </div>
+  <button onclick="toggleTheme()" style="border-radius: 50px;">🌓 Flip Vibe</button>
+</header>
+
+<div class="grid">
+  <div class="glass">
+    <h3>⏲️ Locked In</h3>
+    <h1 id="pomodoro" style="font-size: 4rem; text-align: center; margin: 10px 0; font-weight: 900;">25:00</h1>
+    <div style="display:flex; gap:10px;">
+        <button onclick="startPomodoro()" style="flex:2">Start</button>
+        <button onclick="stopPomodoro()" style="flex:1; background:var(--glass); color:var(--text)">Pause</button>
+        <button onclick="resetPomodoro()" style="flex:1; background:var(--danger); color:white">Reset</button>
+    </div>
+  </div>
+
+  <div class="glass">
+    <h3>🎓 CGPA Calculator</h3>
+    <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px;">
+        <input id="gpaSub" placeholder="Subject">
+        <input id="gpaCr" type="number" placeholder="Credits">
+        <input id="gpaGr" type="number" placeholder="Grade">
+    </div>
+    <button onclick="addGpaItem()" style="width:100%">Add Course</button>
+    <div id="gpaList"></div>
+    <div class="card" style="background:var(--accent); color:#000; justify-content:center; text-align:center;">
+        <div>
+            <small>Estimated CGPA</small>
+            <h2 id="finalGPA" style="margin:0;">0.00</h2>
+        </div>
+    </div>
+    <button class="btn-clear" onclick="clearData('gpaItems')">Reset CGPA</button>
+  </div>
+
+  <div class="glass">
+    <h3>🧮 Quick Maths</h3>
+    <input id="calcDisplay" readonly style="text-align: right; font-size: 1.5rem;">
+    <div class="calc-grid">
+        <button class="calc-btn" onclick="addCalc('7')">7</button>
+        <button class="calc-btn" onclick="addCalc('8')">8</button>
+        <button class="calc-btn" onclick="addCalc('9')">9</button>
+        <button class="calc-btn" onclick="addCalc('/')">÷</button>
+        <button class="calc-btn" onclick="addCalc('4')">4</button>
+        <button class="calc-btn" onclick="addCalc('5')">5</button>
+        <button class="calc-btn" onclick="addCalc('6')">6</button>
+        <button class="calc-btn" onclick="addCalc('*')">×</button>
+        <button class="calc-btn" onclick="addCalc('1')">1</button>
+        <button class="calc-btn" onclick="addCalc('2')">2</button>
+        <button class="calc-btn" onclick="addCalc('3')">3</button>
+        <button class="calc-btn" onclick="addCalc('-')">−</button>
+        <button class="calc-btn" onclick="clearCalc()" style="color:var(--danger)">C</button>
+        <button class="calc-btn" onclick="addCalc('0')">0</button>
+        <button class="calc-btn" onclick="solveCalc()" style="background:var(--success); color:black">=</button>
+        <button class="calc-btn" onclick="addCalc('+')">+</button>
+    </div>
+  </div>
+
+  <div class="glass">
+    <h3>📊 Presence</h3>
+    <input id="attSub" placeholder="Subject Name">
+    <div style="display:flex; gap:10px">
+        <input id="attTotal" type="number" placeholder="Total">
+        <input id="attPres" type="number" placeholder="Present">
+    </div>
+    <button onclick="addAttendance()" style="width:100%">Update</button>
+    <div id="attList"></div>
+    <button class="btn-clear" onclick="clearData('attData')">Wipe Attendance</button>
+  </div>
+
+  <div class="glass">
+    <h3>⏳ Deadlines</h3>
+    <input id="deadName" placeholder="Assignment">
+    <input id="deadDate" type="date">
+    <button onclick="addDeadline()" style="width:100%">Lock In</button>
+    <div id="deadList"></div>
+    <button class="btn-clear" onclick="clearData('deads')">Wipe Deadlines</button>
+  </div>
+
+  <div class="glass">
+    <h3>📈 Subject Marks</h3>
+    <div style="display:flex; gap:10px">
+        <input id="markSub" placeholder="Sub">
+        <input id="markVal" type="number" placeholder="Score">
+    </div>
+    <button onclick="addMark()" style="width:100%">Log It</button>
+    <canvas id="markChart"></canvas>
+    <button class="btn-clear" onclick="clearData('marks')">Wipe Marks</button>
+  </div>
+
+  <div class="glass">
+    <h3>🚀 Semester Trend</h3>
+    <div style="display:flex; gap:10px">
+        <input id="semNum" type="number" placeholder="Sem #">
+        <input id="semGPA" type="number" step="0.01" placeholder="GPA">
+    </div>
+    <button onclick="addSemester()" style="width:100%">Log Semester Result</button>
+    <canvas id="semTrendChart"></canvas>
+    <button class="btn-clear" onclick="clearData('semHistory')">Wipe Trend</button>
+  </div>
+
+  <div class="glass">
+    <h3>✅ Side Quests</h3>
+    <input id="taskIn" placeholder="New Mission...">
+    <button onclick="addTask()" style="width:100%">Add Quest</button>
+    <div id="taskList"></div>
+  </div>
+
+  <div class="glass">
+    <h3>📂 System Notes</h3>
+    <button onclick="selectFolder()" style="width:100%; background:var(--glass); border:1px dashed var(--accent); color:var(--text); margin-bottom:10px">📁 Link PC Folder</button>
+    <input id="noteTitle" placeholder="Topic">
+    <textarea id="noteContent" rows="3" placeholder="Content..."></textarea>
+    <button onclick="saveNote()" style="width:100%">Save File</button>
+    <div id="notesList"></div>
+  </div>
+</div>
+
+<script>
+/* GLOBAL STATE */
+let attData = JSON.parse(localStorage.getItem("attData")) || {};
+let deads = JSON.parse(localStorage.getItem("deads")) || [];
+let marks = JSON.parse(localStorage.getItem("marks")) || {};
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let semHistory = JSON.parse(localStorage.getItem("semHistory")) || [];
+let gpaItems = JSON.parse(localStorage.getItem("gpaItems")) || [];
+
+function clearData(key) {
+    if(confirm(`Delete ${key}?`)) {
+        localStorage.removeItem(key);
+        location.reload(); 
+    }
+}
+
+function renderAll() {
+    renderAtt(); renderDeads(); drawMarkChart(); 
+    renderTasks(); drawSemTrend(); renderGPA();
+}
+
+/* CGPA LOGIC */
+function addGpaItem() {
+    const sub = document.getElementById('gpaSub').value;
+    const cr = parseFloat(document.getElementById('gpaCr').value);
+    const gr = parseFloat(document.getElementById('gpaGr').value);
+    if(sub && cr && gr) {
+        gpaItems.push({sub, cr, gr});
+        localStorage.setItem("gpaItems", JSON.stringify(gpaItems));
+        renderGPA();
+    }
+}
+
+function renderGPA() {
+    const list = document.getElementById('gpaList');
+    list.innerHTML = "";
+    let totalCredits = 0;
+    let totalPoints = 0;
+    
+    gpaItems.forEach((item, i) => {
+        totalCredits += item.cr;
+        totalPoints += (item.cr * item.gr);
+        list.innerHTML += `<div class="card"><span>${item.sub} (Cr:${item.cr})</span><span>${item.gr}</span></div>`;
+    });
+    
+    const res = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+    document.getElementById('finalGPA').innerText = res;
+}
+
+/* THEME & CLOCK */
+function toggleTheme(){ document.body.classList.toggle("light"); }
+function updateClock() {
+    const now = new Date();
+    document.getElementById('realTime').innerText = now.toLocaleString();
+}
+setInterval(updateClock, 1000);
+
+/* SEMESTER TREND LOGIC */
+function addSemester() {
+    const num = document.getElementById('semNum').value;
+    const gpa = document.getElementById('semGPA').value;
+    if(num && gpa) {
+        const index = semHistory.findIndex(s => s.num === num);
+        if(index > -1) semHistory[index].gpa = gpa;
+        else semHistory.push({ num, gpa });
+        semHistory.sort((a, b) => a.num - b.num);
+        localStorage.setItem("semHistory", JSON.stringify(semHistory));
+        drawSemTrend();
+    }
+}
+
+function drawSemTrend() {
+    const canvas = document.getElementById('semTrendChart');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    if(semHistory.length < 1) return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = "#00ff88"; 
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+
+    const pad = 40;
+    const spacing = (canvas.width - pad*2) / (semHistory.length > 1 ? semHistory.length - 1 : 1);
+
+    semHistory.forEach((s, i) => {
+        const x = pad + (i * spacing);
+        const y = canvas.height - (s.gpa / 10 * (canvas.height - pad*2)) - pad;
+        if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    semHistory.forEach((s, i) => {
+        const x = pad + (i * spacing);
+        const y = canvas.height - (s.gpa / 10 * (canvas.height - pad*2)) - pad;
+        ctx.fillStyle = "white";
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "var(--accent)";
+        ctx.fillText("S"+s.num + " ("+s.gpa+")", x - 15, y - 15);
+    });
+}
+
+/* MARKS CHART */
+function addMark(){
+    const s = document.getElementById('markSub').value, v = +document.getElementById('markVal').value;
+    if(s){ marks[s] = v; localStorage.setItem("marks", JSON.stringify(marks)); drawMarkChart(); }
+}
+function drawMarkChart(){
+    const canvas = document.getElementById('markChart');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+    const keys = Object.keys(marks);
+    keys.forEach((s, i) => {
+        const h = (marks[s] / 100) * (canvas.height - 40);
+        ctx.fillStyle = "#00f2ff";
+        ctx.fillRect(i*50 + 20, canvas.height - h - 20, 30, h);
+        ctx.fillStyle = "white";
+        ctx.fillText(s.substring(0,3), i*50 + 20, canvas.height - 5);
+    });
+}
+
+/* ATTENDANCE & OTHER FUNCTIONS */
+function addAttendance(){
+    const s = document.getElementById('attSub').value, t = +document.getElementById('attTotal').value, p = +document.getElementById('attPres').value;
+    if(s && t >= p){ attData[s] = {t, p}; localStorage.setItem("attData", JSON.stringify(attData)); renderAtt(); }
+}
+function renderAtt(){
+    const list = document.getElementById('attList'); list.innerHTML = "";
+    for(let s in attData){
+        let per = Math.round((attData[s].p / attData[s].t) * 100) || 0;
+        list.innerHTML += `<div class="card" style="display:block"><b>${s}</b>: ${per}%<div class="progress-bg"><div class="progress-fill" style="width:${per}%"></div></div></div>`;
+    }
+}
+
+function addDeadline(){
+    const n = document.getElementById('deadName').value, d = document.getElementById('deadDate').value;
+    if(n && d){ deads.push({n, d}); localStorage.setItem("deads", JSON.stringify(deads)); renderDeads(); }
+}
+function renderDeads(){
+    const list = document.getElementById('deadList'); list.innerHTML = "";
+    deads.forEach(item => {
+        let diff = Math.ceil((new Date(item.d) - new Date())/(1000*60*60*24));
+        list.innerHTML += `<div class="card"><span>${item.n}</span><span>${diff}d</span></div>`;
+    });
+}
+
+function addTask(){
+    const input = document.getElementById('taskIn');
+    if(input.value){ tasks.push(input.value); localStorage.setItem("tasks", JSON.stringify(tasks)); input.value=""; renderTasks(); }
+}
+function renderTasks(){
+    const list = document.getElementById('taskList'); list.innerHTML = "";
+    tasks.forEach((t, i) => { list.innerHTML += `<div class="card"><span>${t}</span><button onclick="tasks.splice(${i},1);localStorage.setItem('tasks', JSON.stringify(tasks));renderTasks()" style="background:none;color:var(--danger)">✖</button></div>`; });
+}
+
+/* CALCULATOR */
+let cExp = "";
+function addCalc(v){ cExp += v; document.getElementById('calcDisplay').value = cExp; }
+function clearCalc(){ cExp = ""; document.getElementById('calcDisplay').value = ""; }
+function solveCalc(){ try{ cExp = eval(cExp).toString(); document.getElementById('calcDisplay').value = cExp; } catch{ alert("Error"); clearCalc(); }}
+
+/* QUOTES */
+const quotes = ["Main character energy only.", "The grind never sleeps.", "Manifesting that 4.0."];
+function getNewQuote(){ document.getElementById('quoteDisplay').innerText = quotes[Math.floor(Math.random()*quotes.length)]; }
+
+/* TIMER */
+let pom=1500, pInt=null;
+function startPomodoro(){ if(!pInt) pInt=setInterval(()=>{if(pom>0){pom--;updatePom()}else{stopPomodoro();alert("Done!")}},1000)}
+function stopPomodoro(){clearInterval(pInt); pInt=null}
+function resetPomodoro(){stopPomodoro(); pom=1500; updatePom()}
+function updatePom(){ document.getElementById('pomodoro').innerText=Math.floor(pom/60)+":"+String(pom%60).padStart(2,"0")}
+
+/* FILE SYSTEM NOTES */
+let fHand;
+async function selectFolder(){ fHand = await window.showDirectoryPicker(); renderNotes(); }
+async function saveNote(){
+    const t = document.getElementById('noteTitle').value, c = document.getElementById('noteContent').value;
+    if(!fHand || !t) return alert("Select folder & title first!");
+    const h = await fHand.getFileHandle(t+".txt", {create:true});
+    const w = await h.createWritable(); await w.write(c); await w.close(); renderNotes();
+}
+async function renderNotes(){
+    const list = document.getElementById('notesList'); list.innerHTML = ""; if(!fHand) return;
+    for await (const e of fHand.values()){ if(e.kind === 'file') list.innerHTML += `<div class="card">📄 ${e.name}</div>`; }
+}
+
+// Startup
+renderAll();
+getNewQuote();
+updateClock();
+</script>
+</body>
+</html>
+Based on the code generate an content for the chart about student personalised portal
